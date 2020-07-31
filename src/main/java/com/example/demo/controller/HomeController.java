@@ -40,7 +40,7 @@ public class HomeController{
 		System.out.println("REQUEST VALUE"+dr.getName());*/
 		
 		//http://localhost:8080/jenkins/github-webhook/
-		model.addAttribute("message", "hello6");
+		model.addAttribute("message", "hello7");
 		return "index";
 	}
 	
