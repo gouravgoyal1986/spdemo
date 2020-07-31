@@ -39,8 +39,8 @@ public class HomeController{
 		System.out.println("SESSION VALUE"+ds.getName().hashCode());
 		System.out.println("REQUEST VALUE"+dr.getName());*/
 		
-		
-		model.addAttribute("message", "hello4");
+		//http://localhost:8080/jenkins/github-webhook/
+		model.addAttribute("message", "hello5");
 		return "index";
 	}
 	
