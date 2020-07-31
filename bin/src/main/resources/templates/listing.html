@@ -1,0 +1,30 @@
+    <html lang="en" xmlns:th="https://thymeleaf.org">    
+    <head>    
+    <title>Index Page</title>    
+    <link rel="stylesheet" th:href="@{css/style.css}" >
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" />
+    <script type="text/javascript" th:src="@{js/script.js}"></script>
+    </head>    
+    <body>
+    <div th:replace="header :: myheader"></div> 
+    
+    <table>
+    <tr data-th-each="user : ${listofperson}">
+        <td data-th-text="${user.id}">...</td>
+        <td data-th-text="${user.content}">...</td>
+    </tr>
+</table>
+
+<form action="save" method="post" th:object="${g}">
+
+id <input type="text" th:field="*{id}" ></input>
+
+<p th:if="${#fields.hasErrors('id')}" th:errors="*{id}">Name Error</p>
+
+content <input type="text" th:field="*{content}"></input>
+<p th:if="${#fields.hasErrors('content')}" th:errors="*{content}">Name Error</p>
+<input type="submit" value="submit"></input>
+
+</form>
+    </body>    
+    </html>  

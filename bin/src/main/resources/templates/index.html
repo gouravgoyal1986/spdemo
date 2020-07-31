@@ -1,0 +1,29 @@
+    <html lang="en" xmlns:th="https://thymeleaf.org">    
+    <head>    
+    <title>Index Page</title>    
+    <link rel="stylesheet" th:href="@{css/style.css}" >
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" />
+    <script type="text/javascript" th:src="@{js/script.js}"></script>
+    </head>    
+    <body>
+    <div th:replace="header :: myheader"></div> 
+    <h1 th:text="${message} +' world'"></h1>   
+    <form action="save" method="post">    
+    <table>
+    <tr>    
+    <td><label for="user-name">User Name</label></td>    
+    <td><input type="text" name="content"></input></td>  
+    <button type="button" th:onclick="demo()">demo</button>  
+     </tr>    
+    <tr>    
+    <td><label for="user-id">id > </label></td>    
+    <td><input type="text" name="id"></input></td>    
+    </tr>    
+    <tr>    
+    <td></td>    
+    <td><input type="submit" value="Submit"></input></td>    
+    </tr>    
+    </table>    
+    </form>    
+    </body>    
+    </html>  
