@@ -40,7 +40,7 @@ public class HomeController{
 		System.out.println("REQUEST VALUE"+dr.getName());*/
 		
 		
-		model.addAttribute("message", "hello3");
+		model.addAttribute("message", "hello4");
 		return "index";
 	}
 	
