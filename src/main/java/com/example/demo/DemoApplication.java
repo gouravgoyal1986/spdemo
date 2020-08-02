@@ -2,6 +2,8 @@ package com.example.demo;
 
 import javax.jms.ConnectionFactory;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jms.DefaultJmsListenerContainerFactoryConfigurer;
@@ -17,12 +19,14 @@ import org.springframework.jms.support.converter.MappingJackson2MessageConverter
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.MessageType;
 
+import com.example.demo.controller.HomeController;
 import com.example.demo.entity.MoveState;
 
 @SpringBootApplication
 @EnableJms
 public class DemoApplication extends SpringBootServletInitializer {
-
+	static Logger logger = LoggerFactory.getLogger(DemoApplication.class);
+	
 	@Bean
 	public JmsListenerContainerFactory<?> myFactory(ConnectionFactory connectionFactory,
 	                          DefaultJmsListenerContainerFactoryConfigurer configurer) {
@@ -50,7 +54,7 @@ public class DemoApplication extends SpringBootServletInitializer {
 		ConfigurableApplicationContext context = SpringApplication.run(DemoApplication.class, args);
 		
 		JmsTemplate jmsTemplate = context.getBean(JmsTemplate.class);
-
+		logger.debug("<<<<<<<<<<<<Sending an email message>>>>>>>>>>>>>>>");
 	    // Send a message with a POJO - the template reuse the message converter
 	    System.out.println("Sending an email message.");
 	    jmsTemplate.convertAndSend("mailbox", new MoveState(1,1));

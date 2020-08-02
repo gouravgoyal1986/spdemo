@@ -4,6 +4,8 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -23,6 +25,8 @@ import com.example.demo.repository.GreetingRepo;
 
 @Controller
 public class HomeController{
+	
+    Logger logger = LoggerFactory.getLogger(HomeController.class);
 	
 	@Autowired
 	GreetingRepo gr;
@@ -48,6 +52,8 @@ public class HomeController{
 	public ModelAndView getPerson(Model model,Greeting g) {
 		ds.setName("tt");
 		dr.setName("tt");
+		
+		logger.debug("<<<<<<<<<<<<testing>>>>>>>>>>>>>>>");
 		
 		System.out.println("SESSION VALUE"+ds.getName());
 		System.out.println("SESSION VALUE"+ds.getName().hashCode());
