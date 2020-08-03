@@ -6,7 +6,11 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class MoveState {
-
-	int card;
+	int deckno;
+	int boardId;
+	String cardno;
+	int cardtype;
 	int personPlayed;
+	int position;
+	int winnerPlayerId;
 }
