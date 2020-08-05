@@ -26,18 +26,20 @@ import org.springframework.web.util.HtmlUtils;
 import com.example.demo.component.DataRequest;
 import com.example.demo.component.DataSession;
 import com.example.demo.entity.MoveState;
+import com.example.demo.entity.Player;
 import com.example.demo.model.Greeting;
 import com.example.demo.repository.GreetingRepo;
-
-
 
 @Controller
 public class HomeController{
 	
     Logger logger = LoggerFactory.getLogger(HomeController.class);
-	
-    ArrayList<Integer> myList1 = new ArrayList<Integer>();//For two player only
-    ArrayList<Integer> myList2 = new ArrayList<Integer>();//For two player only
+    public final int JACK_INITIAL = 1;
+    public final int JACK_UPPER_RIGHT = 10;
+    public final int JACK_LOWER_LEFT = 91;
+    public final int JACK_LAST = 100;
+    
+    HashMap<Long,Player> myMap = new HashMap<>();
     
 	@Autowired
 	GreetingRepo gr;
@@ -54,7 +56,6 @@ public class HomeController{
 		System.out.println("SESSION VALUE"+ds.getName().hashCode());
 		System.out.println("REQUEST VALUE"+dr.getName());
 		
-		//http://localhost:8080/jenkins/github-webhook/
 		model.addAttribute("message", "hello10");
 		return "index";
 	}
@@ -64,6 +65,12 @@ public class HomeController{
 	@RequestMapping(value={"/cequence/{boardId}/{playerId}"})
 	public String cequenceIndex(Model model,@PathVariable("boardId") long boardId,@PathVariable("playerId") long playerId) {
 		model.addAttribute("boardId",boardId);
+		if(!myMap.containsKey(playerId)) {
+			Player _player = new Player();
+			_player.setPlayerId(playerId);
+			_player.setMyMoveList(new ArrayList<>());
+			myMap.put(playerId, _player);
+		}				
 		model.addAttribute("playerId",playerId);
 		return "../static/index";
 	}
@@ -74,45 +81,69 @@ public class HomeController{
 	
 	@MessageMapping("/hello")
 	  public void greeting(MoveState message) throws Exception {
-	    Thread.sleep(1000); // simulated delay
 	    System.out.println("message>>>"+message);
 	    boolean isWinner = false;
-		if(message.getPersonPlayed() == 1) {
-			isWinner = isWinner(myList1,message.getPosition());
-	    	myList1.add(message.getPosition());	
-	    } else {
-	    	isWinner = isWinner(myList2,message.getPosition());
-	    	myList2.add(message.getPosition());
-	    	
-	    }	    
+
+	    System.out.println("message getPersonPlayed>>>"+message.getPersonPlayed());
+	    System.out.println("message myMap get player>>>"+  myMap.get((long)message.getPersonPlayed()));
+	    
+	    myMap.forEach((i,v)->{ System.out.println(i); 
+	    System.out.println(v);
+	    });
+	    
+		isWinner = isWinner(myMap.get((long)message.getPersonPlayed()).getMyMoveList(),message.getPosition());
+    	myMap.get((long)message.getPersonPlayed()).getMyMoveList().add(message.getPosition());
 	    
 	    if(isWinner) {
-	    	myList1.clear();
-	    	myList2.clear();
+	    	myMap.get((long)message.getPersonPlayed()).getMyMoveList().clear();
 	    	message.setWinnerPlayerId(message.getPersonPlayed());	
 	    }
 	    
 	    
 	    this.template.convertAndSend("/topic/board/"+message.getBoardId(), message);
-	    
-	    //return new Greeting(1,"Hello, " + message.getPersonPlayed() + "!");
 	  }
 	
 	
 	private boolean isWinner(ArrayList<Integer> myList, int move) {
-		System.out.println("isWinner checking");
+		System.out.println("isWinner checking move "+move);
+		System.out.println("isWinner checking myList ");
+		myList.forEach(i->System.out.println(i));
+		
+		
 		if(myList.isEmpty()) return false;
 		int verticalFound = 1;
+		int horizontalFound = 1;
+		int verticalDiagonalFound = 1;
+		int horizontalDiagonalFound = 1;
 		Boolean verticalDownCrawlingStopped = false;
 		Boolean verticalUpCrawlingStopped = false;
+		
+		if(move==JACK_INITIAL || move==JACK_UPPER_RIGHT  || move==JACK_LOWER_LEFT  || move==JACK_LAST) {
+			verticalFound++;
+			horizontalFound++;
+			verticalDiagonalFound++;
+			horizontalDiagonalFound++;
+		}
 		for(int i=1;i<5;i++) {
 			if(!verticalUpCrawlingStopped && myList.contains(move - (i*10))) {
+				if(move - (i*10)==JACK_INITIAL
+						|| move - (i*10)==JACK_UPPER_RIGHT
+						|| move - (i*10)==JACK_LOWER_LEFT  
+						|| move - (i*10)==JACK_LAST) {
+					verticalFound++;
+				}
 				verticalFound++;
 				System.out.println("isWinner verticalUpCrawling "+(move - (i*10)));
 			} else {
 				verticalUpCrawlingStopped = true;
 			}
 			if(!verticalDownCrawlingStopped && myList.contains(move + (i*10))) {
+				if(move + (i*10)==JACK_INITIAL
+						|| move + (i*10)==JACK_UPPER_RIGHT
+						|| move + (i*10)==JACK_LOWER_LEFT
+						|| move + (i*10)==JACK_LAST) {
+					verticalFound++;
+				}
 				verticalFound++;
 				System.out.println("isWinner verticalDownCrawling "+(move + (i*10)));
 			} else {
@@ -120,18 +151,30 @@ public class HomeController{
 			}
 		}
 		System.out.println("isWinner verticalFound "+verticalFound);
-		int horizontalFound = 1;
+		
 		Boolean horizontalLeftCrawlingStopped = false;
 		Boolean horizontalRightCrawlingStopped = false;
 		for(int i=1;i<5;i++) {
 			
 			if(!horizontalLeftCrawlingStopped && (move - i)%10!=0 && myList.contains(move - i)) {
+				if((move - i)==JACK_INITIAL
+						|| (move - i)==JACK_UPPER_RIGHT
+						|| (move - i)==JACK_LOWER_LEFT
+						|| (move - i)==JACK_LAST ) {
+					horizontalFound++;
+				}
 				horizontalFound++;
 				System.out.println("isWinner horizontalLeftCrawling "+(move - i));
 			}else {
 				horizontalLeftCrawlingStopped = true;
 			}
 			if(!horizontalRightCrawlingStopped && (move + i)%10!=1 && myList.contains(move + i)) {
+				if((move + i)==JACK_INITIAL
+						|| (move + i)==JACK_UPPER_RIGHT
+						|| (move + i)==JACK_LOWER_LEFT
+						|| (move + i)==JACK_LAST) {
+					horizontalFound++;
+				}
 				horizontalFound++;
 				System.out.println("isWinner horizontalRightCrawling "+(move + i));
 			}else {
@@ -143,17 +186,26 @@ public class HomeController{
 		/*1
 		   1
 		    1*/
-		int verticalDiagonalFound = 1;
+		
 		Boolean verticalDiagonalDownCrawlingStopped = false;
 		Boolean verticalDiagonalUpCrawlingStopped = false;
 		for(int i=1;i<5;i++) {
 			if(!verticalDiagonalUpCrawlingStopped && myList.contains(move - (i*11))) {
+				if(move - (i*11)==JACK_INITIAL || move - (i*11)==JACK_UPPER_RIGHT || move - (i*11)==JACK_LOWER_LEFT || move - (i*11)==JACK_LAST) {
+					verticalDiagonalFound++;
+				}
 				verticalDiagonalFound++;
 				System.out.println("isWinner verticalUpCrawling "+(move - (i*11)));
 			} else {
 				verticalDiagonalUpCrawlingStopped = true;
 			}
 			if(!verticalDiagonalDownCrawlingStopped && myList.contains(move + (i*11))) {
+				if(move + (i*11)==JACK_INITIAL
+						|| move + (i*11)==JACK_UPPER_RIGHT
+						|| move + (i*11)==JACK_LOWER_LEFT
+						|| move + (i*11)==JACK_LAST) {
+					verticalDiagonalFound++;
+				}
 				verticalDiagonalFound++;
 				System.out.println("isWinner verticalDiagonalDownCrawling "+(move + (i*11)));
 			} else {
@@ -165,18 +217,24 @@ public class HomeController{
 		/* 1
 		  1
 		 1 */
-		int horizontalDiagonalFound = 1;
+		
 		Boolean horizontalDiagonalLeftCrawlingStopped = false;
 		Boolean horizontalDiagonalRightCrawlingStopped = false;
 		for(int i=1;i<5;i++) {
 			
 			if(!horizontalDiagonalLeftCrawlingStopped && (move - (i*9))%10!=1 && myList.contains(move - (i*9))) {
+				if(move - (i*9)==JACK_INITIAL || move - (i*9)==JACK_UPPER_RIGHT || move - (i*9)==JACK_LOWER_LEFT || move - (i*9)==JACK_LAST) {
+					horizontalDiagonalFound++;
+				}
 				horizontalDiagonalFound++;
 				System.out.println("isWinner horizontalDiagonalLeftCrawling "+(move + (i*9)));
 			}else {
 				horizontalDiagonalLeftCrawlingStopped = true;
 			}
 			if(!horizontalDiagonalRightCrawlingStopped && (move + (i*9))%10!=0 && myList.contains(move + (i*9))) {
+				if(move + (i*9)==JACK_INITIAL || move + (i*9)==JACK_UPPER_RIGHT || move + (i*9)==JACK_LOWER_LEFT || move + (i*9)==JACK_LAST) {
+					horizontalDiagonalFound++;
+				}
 				horizontalDiagonalFound++;
 				System.out.println("isWinner horizontalDiagonalRightCrawling "+(move + (i*9)));
 			}else {

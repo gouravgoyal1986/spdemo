@@ -65,45 +65,9 @@ function clickToggle(val) {
 	}	
 }
 
-/*function checkWinner(deck_no,no,type) {
-	console.log('checkWinner deck_no '+deck_no+" no "+no+" type "+type);
-	
-}*/
-
-function getPosition(deck_no,no,type) {
-	console.log('getPosition deck_no '+deck_no+" no "+no+" type "+type);
-	deckPostion = deck_no;
-	rankPosition = ranks.indexOf(no);
-	typePosition = type;
-	console.log('getPosition deckPostion '+deckPostion+" rankPosition "+rankPosition+" typePosition "+typePosition);
-	position = 0;
-	actualPosition = -1;
-	if(deck_no==2 && typePosition>2) {
-		position = 55;
-	}else if(deck_no==2 && typePosition>1 && rankPosition>9) {
-		position = 55;
-	}else if(deck_no==2) {
-		position = 54;
-	}else if(type==0 && rankPosition<8){
-		position = 1;
-	}else if(type==4) {
-		actualPosition=0;
-	}else if(type==12) {
-		actualPosition=9;
-	}else if(type==94) {
-		actualPosition=90;
-	}else if(type==102) {
-		actualPosition=99;
-	} else {
-		position = 2;
-	}
-	if(actualPosition==-1) {
-		actualPosition = ((parseInt(typePosition))*13)+position+rankPosition;
-	}	
-	console.log('getPosition before adding actualPosition '+actualPosition);
-	actualPosition = actualPosition+1;
-	console.log('getPosition actualPosition '+actualPosition);
-	return actualPosition;
+function getPosition(deck_no,no,type,position) {
+	console.log('getPosition deck_no '+deck_no+" no "+no+" type "+type," position "+position);
+	return parseInt(position);
 }
 
 const suitPositions = [
@@ -166,9 +130,6 @@ const suitPositions = [
 	  ],
 	  [
 	    [0, 0]
-	  ],
-	  [
-	    [0, 0]
 	  ]
 	];
 
@@ -205,15 +166,15 @@ const suitPositions = [
 	const div = (a, c) => el('div', a, c);
 
 	const decks = '1 2'.split(' ');
-	const ranks = '10 8 3 4 9 6 Q 7 2 A J 5 K'.split(' ');
+	const ranks = '10 8 3 4 9 6 Q 7 2 A 5 K'.split(' ');
 	const suits = '♠︎ ♥︎ ♣︎ ♦︎'.split(' ');
 	const joker = '🃏'.split(' ');
 
 	const getDeck = (i) => decks[i % 2];
-	const getRank = (i) => ranks[i % 13];
-	const getSuit = (i) => suits[i / 13 | 0];
+	const getRank = (i) => ranks[i % 12];
+	const getSuit = (i) => suits[i / 12 | 0];
 	const getJoker = (i) => joker[i / 1 | 0];
-	const getColor = (i) => (i / 13 | 0) % 2 ? 'red' : 'black';
+	const getColor = (i) => (i / 12 | 0) % 2 ? 'red' : 'black';
 
 	const createSuit = (suit) => (pos) => {
 	  const [ x, y, mirrored ] = pos;
@@ -224,16 +185,17 @@ const suitPositions = [
 	  }, [ suit ]);
 	};
 
-	const createCard = (j,i) => {
+	const createCard = (j,i,counter) => {
 	  const deck = getDeck(j);
 	  const rank = getRank(i);
 	  const suit = getSuit(i);
+	  counter = counter+1;
 	  const colorClass = 'col-sm card ' + getColor(i);
-	  const type = i / 13 | 0;
+	  const type = i / 12 | 0;
 
-	  return div({ class: colorClass,'data-deck-no' : deck,'data-card-name' : type,'data-card-rank' : rank}, [
+	  return div({ class: colorClass,'data-deck-no' : deck,'data-card-name' : type,'data-card-rank' : rank,'data-card-position' : counter}, [
 	    div({ class: 'card-suits' },
-	      suitPositions[i % 13].map(createSuit(suit))
+	      suitPositions[i % 12].map(createSuit(suit))
 	    ),
 	    div({ class: 'card-topleft' }, [
 	      div({ class: 'card-corner-rank' }, [
@@ -258,11 +220,12 @@ const suitPositions = [
 		  const deck = getDeck(j);
 		  const rank = 'J';
 		  const suit = getJoker(i);
+		  counter=counter+1;
 		  
 		  const colorClass = 'col-sm card ' + getColor(i);
-		  const type = i / 13 | 0;
+		  const type = i / 12 | 0;
 
-		  return div({ class: colorClass,'data-deck-no' : deck,'data-card-name' : counter,'data-card-rank' : rank}, [
+		  return div({ class: colorClass,'data-deck-no' : deck,'data-card-name' : counter,'data-card-rank' : rank,'data-card-position' : counter}, [
 		    div({ class: 'card-suits' },
 		      jokerPositions[i % 1].map(createSuit(suit))
 		    ),
@@ -286,7 +249,7 @@ const suitPositions = [
 		};
 
 	const deckCount = new Array(2);
-	const cardsData = new Array(52);
+	const cardsData = new Array(48);
 
 	for (let i = 0; i < deckCount.length; i++) {
 		deckCount[i] = i;
@@ -301,11 +264,15 @@ const suitPositions = [
 	
 	
 	let counter =0;
-
+	var card;
 	deckCount.forEach((j) => {
 		cardsData.forEach((i) => {
-			//console.log(i+" "+counter);
-			const card = createCard(j,i);
+			console.log(i+" "+counter);
+			if(!(counter==0) && !(counter==9) && !(counter==90) && !(counter==98)) {
+				card = createCard(j,i,counter);
+				console.log('card created');
+			}
+			
 			i=j+i;
 			
 			if(counter%10==0) {
@@ -313,16 +280,17 @@ const suitPositions = [
 			}
 			
 			if(counter==0 || counter==90) {
-				const jokerCard = createJokerCard(0,0,counter+4);
+				const jokerCard = createJokerCard(0,0,counter);
 				rowdiv.appendChild(jokerCard);
-				counter++;
 			}				
+			if(!(counter==0) && !(counter==9) && !(counter==90) && !(counter==98)) {
+				console.log('card added');
+				rowdiv.appendChild(card);
+			}
 			
-			rowdiv.appendChild(card);
-			if(counter==8 || counter==98) {
-				const jokerCard = createJokerCard(0,0,counter+4);
+			if(counter==9 || counter==95) {
+				const jokerCard = createJokerCard(0,0,counter);
 				rowdiv.appendChild(jokerCard);
-				counter++;
 			}
 			if(counter%9==0) {
 				deck.appendChild(rowdiv);
@@ -345,7 +313,7 @@ const suitPositions = [
 	     	 
 	     	if(canPlay()) {
 	     		 console.log(this.getAttribute('data-card-rank')+this.getAttribute('data-card-name'));
-	     		let position = getPosition(this.getAttribute('data-deck-no'),this.getAttribute('data-card-rank'),this.getAttribute('data-card-name'));
+	     		let position = getPosition(this.getAttribute('data-deck-no'),this.getAttribute('data-card-rank'),this.getAttribute('data-card-name'),this.getAttribute('data-card-position'));
 		     	 sendCardDetail(this.getAttribute('data-deck-no'),this.getAttribute('data-card-rank'),this.getAttribute('data-card-name'),position);
 	     		setCoin(this);
 	     		//checkWinner(this.getAttribute('data-deck-no'),this.getAttribute('data-card-rank'),this.getAttribute('data-card-name'));
